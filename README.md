@@ -7,7 +7,7 @@ Perkenalkan kami dari kelompok **kindaVoronoi()** yang beranggotakan
 2. Ravie Hasan Abud (2206031864)
 3. Jason Kent Winata (2206081313)
 
-Di sini kami merancang algoritma diagram voronoi dan memvisualisasikannya menggunakan bahasa Python dan library TKinter. 
+Di sini kami merancang algoritma diagram voronoi menggunakan incremental algorithm dan memvisualisasikannya menggunakan bahasa Python dan library TKinter. 
 
 ## Cara Memulai
 
