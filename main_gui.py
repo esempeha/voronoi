@@ -153,14 +153,18 @@ class MainGUI:
 
             if is_empty:
                 empty_circles.append(circle)
+                print(circle['radius'])
 
-        return sorted(empty_circles, key=lambda x: x['radius'], reverse=True)
+        if empty_circles:
+            max_radius = max(circle['radius'] for circle in empty_circles)
+            return [circle for circle in empty_circles if abs(circle['radius'] - max_radius) < Point.EPSILON]
+        return []
 
     def find_and_draw_empty_circles(self):
         if len(self.diagram.get_cells()) < 3:
             return
 
-        self.largest_empty_circles = self.find_largest_empty_circles()[:1]
+        self.largest_empty_circles = self.find_largest_empty_circles()
 
         self.draw_cells()
 
