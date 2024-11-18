@@ -1,3 +1,5 @@
+import itertools
+import math
 import random
 import tkinter as tk
 from tkinter import filedialog
@@ -63,6 +65,7 @@ class MainGUI:
         if self.diagram.add_point(new_point):
             print("Point added successfully")
             self.draw_cells()
+            self.find_and_draw_empty_circles()
         else:
             print("Failed to add point")
 
@@ -75,6 +78,7 @@ class MainGUI:
             if self.diagram.add_point(new_point):
                 print(f"Added manual point at: ({x}, {y})")
                 self.draw_cells()
+                self.find_and_draw_empty_circles()
             else:
                 print(f"Failed to add point at: ({x}, {y})")
         except (ValueError, IndexError):
@@ -92,6 +96,7 @@ class MainGUI:
             if self.diagram.add_point(new_point):
                 print(f"Random point added: ({x}, {y})")
         self.draw_cells()
+        self.find_and_draw_empty_circles()
 
     def draw_cells(self):
         """Menggambar semua cell dan border pada canvas."""
@@ -100,6 +105,87 @@ class MainGUI:
             for line in cell.borders:
                 self.draw_line(line)
             self.draw_point(cell.generator)
+
+    def find_circumcircle(self, a, b, c):
+        """
+        Calculate the circumcircle of three points.
+        Returns a dictionary with center and radius or None if points are collinear.
+        """
+        det = a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)
+        if abs(det) < Point.EPSILON:
+            return None
+
+        ax, ay = a.x, a.y
+        bx, by = b.x, b.y
+        cx, cy = c.x, c.y
+        
+        d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+        ux = ((ax*ax + ay*ay) * (by - cy) + (bx*bx + by*by) * (cy - ay) + (cx*cx + cy*cy) * (ay - by)) / d
+        uy = ((ax*ax + ay*ay) * (cx - bx) + (bx*bx + by*by) * (ax - cx) + (cx*cx + cy*cy) * (bx - ax)) / d
+
+        center = Point(ux, uy)
+        radius = math.sqrt((center.x - ax)**2 + (center.y - ay)**2)
+        
+        return {
+            'center': center,
+            'radius': radius,
+            'points': (a, b, c)
+        }
+
+    def find_largest_empty_circles(self):
+        generators = [cell.generator for cell in self.diagram.get_cells()[3:]]
+        empty_circles = []
+
+        for a, b, c in itertools.combinations(generators, 3):
+            circle = self.find_circumcircle(a, b, c)
+            
+            if circle is None:
+                continue
+
+            is_empty = True
+            for point in generators:
+                if point in circle['points']:
+                    continue
+                dist = math.sqrt((point.x - circle['center'].x)**2 + (point.y - circle['center'].y)**2)
+                if dist <= circle['radius'] + Point.EPSILON:
+                    is_empty = False
+                    break
+
+            if is_empty:
+                empty_circles.append(circle)
+
+        return sorted(empty_circles, key=lambda x: x['radius'], reverse=True)
+
+    def find_and_draw_empty_circles(self):
+        if len(self.diagram.get_cells()) < 3:
+            return
+
+        self.largest_empty_circles = self.find_largest_empty_circles()[:1]
+
+        self.draw_cells()
+
+        for circle in self.largest_empty_circles:
+            center = circle['center']
+            radius = circle['radius']
+            
+            self.canvas.create_oval(
+                center.x - radius, center.y - radius,
+                center.x + radius, center.y + radius,
+                outline="red", width=2
+            )
+            
+            self.canvas.create_oval(
+                center.x - 3, center.y - 3,
+                center.x + 3, center.y + 3,
+                fill="red"
+            )
+            
+            for point in circle['points']:
+                self.canvas.create_oval(
+                    point.x - 5, point.y - 5,
+                    point.x + 5, point.y + 5,
+                    fill="green"
+                )
 
     def draw_line(self, line):
         """Menggambar garis pada canvas."""
@@ -128,12 +214,12 @@ class MainGUI:
                 for line in file:
                     line = line.strip()
                     if line:
-                        # Parse koordinat dari format (x, y)
                         x, y = map(int, line.strip("()").split(","))
                         point = Point(x, y)
                         if self.diagram.add_point(point):
                             print(f"Point loaded: {point}")
             self.draw_cells()
+            self.find_and_draw_empty_circles()
         except Exception as e:
             print(f"Error loading points: {e}")
 

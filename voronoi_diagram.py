@@ -1,11 +1,8 @@
-import math
-from itertools import combinations
 from geometry import Geometry
 from bounding_box import BoundingBox
 from cell import Cell
 from line import Line
 from point import Point
-
 
 class VoronoiDiagram:
     SUPER_FACTOR = 4
@@ -79,57 +76,57 @@ class VoronoiDiagram:
             return False
 
         visited = {}
-        curr_cell = first
+        current_cell = first
 
         while True:
-            hp = Line(p, curr_cell.generator).bisector(self.bisector_bound)
+            hp = Line(p, current_cell.generator).bisector(self.bisector_bound)
             i1 = None
             l1 = None
             new_border = []
             num_intersections = 0
             next_cell = None
 
-            for curr_line in curr_cell.borders:
-                intersection = hp.intersection(curr_line)
+            for current_line in current_cell.borders:
+                intersection = hp.intersection(current_line)
                 if intersection:
                     num_intersections += 1
                     if i1 is None:
                         i1 = intersection
-                        l1 = curr_line
+                        l1 = current_line
                     else:
                         if Geometry.cross_product(i1, intersection, p) > 0:
-                            new_cell.borders.append(Line(i1, intersection, curr_cell))
+                            new_cell.borders.append(Line(i1, intersection, current_cell))
                             new_border.append(Line(i1, intersection, new_cell))
-                            next_cell = curr_line.neighbor
+                            next_cell = current_line.neighbor
                         else:
-                            new_cell.borders.append(Line(intersection, i1, curr_cell))
+                            new_cell.borders.append(Line(intersection, i1, current_cell))
                             new_border.append(Line(intersection, i1, new_cell))
                             next_cell = l1.neighbor
-                        tmp = curr_line.start if Geometry.closer_to(curr_line.start, p, curr_cell.generator) == curr_cell.generator else curr_line.end
-                        new_border.append(Line(intersection, tmp, curr_line.neighbor))
-                        tmp = l1.start if Geometry.closer_to(l1.start, p, curr_cell.generator) == curr_cell.generator else l1.end
+                        tmp = current_line.start if Geometry.closer_to(current_line.start, p, current_cell.generator) == current_cell.generator else current_line.end
+                        new_border.append(Line(intersection, tmp, current_line.neighbor))
+                        tmp = l1.start if Geometry.closer_to(l1.start, p, current_cell.generator) == current_cell.generator else l1.end
                         new_border.append(Line(i1, tmp, l1.neighbor))
 
-                if (Geometry.closer_to(curr_line.start, curr_cell.generator, p) == curr_cell.generator
-                    and Geometry.closer_to(curr_line.end, curr_cell.generator, p) == curr_cell.generator):
-                    new_border.append(curr_line)
+                if (Geometry.closer_to(current_line.start, current_cell.generator, p) == current_cell.generator
+                    and Geometry.closer_to(current_line.end, current_cell.generator, p) == current_cell.generator):
+                    new_border.append(current_line)
 
             if num_intersections != 2:
                 print(f"Skipped degenerate cell ({p.x:.2f}, {p.y:.2f}) [wrong # of intersections: {num_intersections}]")
                 for k, borders in visited.items():
                     k.borders = borders
                 return False
-            elif curr_cell in visited:
+            elif current_cell in visited:
                 print(f"Skipped degenerate cell ({p.x:.2f}, {p.y:.2f}) [missed cell border]")
                 for k, borders in visited.items():
                     k.borders = borders
                 return False
 
-            visited[curr_cell] = curr_cell.borders
-            curr_cell.borders = new_border
-            curr_cell = next_cell
+            visited[current_cell] = current_cell.borders
+            current_cell.borders = new_border
+            current_cell = next_cell
 
-            if curr_cell == first:
+            if current_cell == first:
                 break
 
         self.add_cell(new_cell)
