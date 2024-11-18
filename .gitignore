@@ -1,0 +1,77 @@
+# Sistem operasi
+.DS_Store
+Thumbs.db
+
+# File log
+*.log
+*.log.*
+
+# Lingkungan pengembangan lokal
+.env
+*.env
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Virtual environment Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build dan output file
+dist/
+build/
+*.out
+*.o
+*.so
+
+# Docker
+docker-compose.override.yml
+*.pid
+/tmp
+
+# Editor dan tool lainnya
+*.swp
+*~.nib
+*.swm
+*.bak
+*.bkp
+
+# File database lokal
+*.sqlite3
+*.db
+
+# File sementara lain
+*.tmp
+*.temp
+
+# File media atau hasil rendering
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif
+*.svg
+*.webp
+
+# File spesifik sistem tertentu (tambahkan jika perlu)
+.mypy_cache/
+.pytest_cache/
+coverage/
+.cache/
+
+# File test
+*.test
+
+# File zip atau kompres
+*.zip
+*.tar.gz
+*.rar
+*.7z
