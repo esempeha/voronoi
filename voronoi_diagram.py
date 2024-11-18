@@ -5,53 +5,62 @@ from line import Line
 from point import Point
 
 class VoronoiDiagram:
-    SUPER_FACTOR = 4
-    INIT_BISECT_FACTOR = 4
-    GENERAL_BISECT_FACTOR = 3
+    """Kelas untuk konstruksi diagram voronoi dengan menggunakan voronoi cell dan garis bisector."""
 
     def __init__(self, max_dimension):
+        """Constructor diagram Voronoi dengan ukuran maksimum tertentu."""
         self.boundary = BoundingBox(0.0, 0.0, max_dimension, max_dimension)
         self.cells = []
         self.id_cell = 0
-        self.setup(max_dimension)
+        self.setup()
 
-    def setup(self, max_dimension):
+    def setup(self):
+        """Membentuk cell awal di luar area bounding box."""
+
+        # minimum, maksimum, dan range dari bounding box
         x_min, y_min = self.boundary.x_min, self.boundary.y_min
         x_max, y_max = self.boundary.x_max, self.boundary.y_max
         x_range, y_range = x_max - x_min, y_max - y_min
-        x_super, y_super = x_range * self.SUPER_FACTOR, y_range * self.SUPER_FACTOR
+        x_super, y_super = x_range * 4, y_range * 4
 
-        x_min_bisect = x_min - x_super * self.GENERAL_BISECT_FACTOR
-        y_min_bisect = y_min - y_super * self.GENERAL_BISECT_FACTOR
-        x_max_bisect = x_max + x_super * self.GENERAL_BISECT_FACTOR
-        y_max_bisect = y_max + y_super * self.GENERAL_BISECT_FACTOR
+        # membuat bounding box yang lebih besar untuk garis bisector
+        x_min_bisect = x_min - x_super * 3
+        y_min_bisect = y_min - y_super * 3
+        x_max_bisect = x_max + x_super * 3
+        y_max_bisect = y_max + y_super * 3
         self.bisector_bound = BoundingBox(x_min_bisect, y_min_bisect, x_max_bisect, y_max_bisect)
 
-        x_min_init = x_min - x_super * self.INIT_BISECT_FACTOR
-        y_min_init = y_min - y_super * self.INIT_BISECT_FACTOR
-        x_max_init = x_max + x_super * self.INIT_BISECT_FACTOR
-        y_max_init = y_max + y_super * self.INIT_BISECT_FACTOR
+        # initialize bounding box awal
+        x_min_init = x_min - x_super * 4
+        y_min_init = y_min - y_super * 4
+        x_max_init = x_max + x_super * 4
+        y_max_init = y_max + y_super * 4
         init_bound = BoundingBox(x_min_init, y_min_init, x_max_init, y_max_init)
 
-        v1 = Point(x_min + x_range / 2, y_min - y_super + y_range / 2)
-        v2 = Point(x_max + x_super - x_range / 2, y_max + y_super - y_super / 2)
-        v3 = Point(x_min - x_super + x_range / 2, y_max + y_super - y_super / 2)
+        # tiga titik yang membentuk super triangle
+        p1 = Point(x_min + x_range / 2, y_min - y_super + y_range / 2)
+        p2 = Point(x_max + x_super - x_range / 2, y_max + y_super - y_super / 2)
+        p3 = Point(x_min - x_super + x_range / 2, y_max + y_super - y_super / 2)
 
-        c1 = Cell(v1, self.id_cell)
+        # buat voronoi cell untuk ketiga titik
+        c1 = Cell(p1, self.id_cell)
         self.id_cell += 1
-        c2 = Cell(v2, self.id_cell)
+        c2 = Cell(p2, self.id_cell)
         self.id_cell += 1
-        c3 = Cell(v3, self.id_cell)
+        c3 = Cell(p3, self.id_cell)
         self.id_cell += 1
 
-        l1 = Line(v1, v2).bisector(init_bound)
-        l2 = Line(v2, v3).bisector(init_bound)
-        l3 = Line(v1, v3).bisector(init_bound)
+        # buat bisector untuk pasangan setiap titik
+        l1 = Line(p1, p2).bisector(init_bound)
+        l2 = Line(p2, p3).bisector(init_bound)
+        l3 = Line(p1, p3).bisector(init_bound)
 
+        # titik potong antara bisector
         i1 = l1.intersection(l2)
         i2 = l2.intersection(l3)
         i3 = l1.intersection(l3)
 
+        # garis untuk setiap cell
         c1.borders.append(Line(l1.start, i1, c2))
         c2.borders.append(Line(l1.start, i1, c1))
         c2.borders.append(Line(i2, l2.end, c3))
@@ -59,25 +68,29 @@ class VoronoiDiagram:
         c1.borders.append(Line(l3.start, i3, c3))
         c3.borders.append(Line(l3.start, i3, c1))
 
+        # simpan voroonoi cell
         self.add_cell(c1)
         self.add_cell(c2)
         self.add_cell(c3)
 
     def add_cell(self, c):
+        """Menambahkan cell ke dalam list of Voronoi cell."""
         self.cells.append(c)
 
     def add_point(self, p):
+        """Menambahkan titik baru ke diagram Voronoi dan membentuk cell baru."""
         new_cell = Cell(p, self.id_cell)
         self.id_cell += 1
         first = self.find_cell(p)
         
+        # jika titik sudah ada
         if p == first.generator:
-            print(f"Trying to add duplicate point: {p}")
             return False
 
         visited = {}
         current_cell = first
 
+        # membagi cell-cell yang terpengaruh oleh site/titik baru
         while True:
             hp = Line(p, current_cell.generator).bisector(self.bisector_bound)
             i1 = None
@@ -86,14 +99,18 @@ class VoronoiDiagram:
             num_intersections = 0
             next_cell = None
 
+            # cari intersection antara bisector baru dengan garis batas cell
             for current_line in current_cell.borders:
                 intersection = hp.intersection(current_line)
                 if intersection:
                     num_intersections += 1
+                    
                     if i1 is None:
                         i1 = intersection
                         l1 = current_line
+                    
                     else:
+                        # Tentukan arah dan neighbor dari garis baru yang terbentuk
                         if Geometry.cross_product(i1, intersection, p) > 0:
                             new_cell.borders.append(Line(i1, intersection, current_cell))
                             new_border.append(Line(i1, intersection, new_cell))
@@ -102,26 +119,28 @@ class VoronoiDiagram:
                             new_cell.borders.append(Line(intersection, i1, current_cell))
                             new_border.append(Line(intersection, i1, new_cell))
                             next_cell = l1.neighbor
+
                         tmp = current_line.start if Geometry.closer_to(current_line.start, p, current_cell.generator) == current_cell.generator else current_line.end
                         new_border.append(Line(intersection, tmp, current_line.neighbor))
                         tmp = l1.start if Geometry.closer_to(l1.start, p, current_cell.generator) == current_cell.generator else l1.end
                         new_border.append(Line(i1, tmp, l1.neighbor))
 
+                # tambahkan garis boundary yang tidak terpengaruh
                 if (Geometry.closer_to(current_line.start, current_cell.generator, p) == current_cell.generator
                     and Geometry.closer_to(current_line.end, current_cell.generator, p) == current_cell.generator):
                     new_border.append(current_line)
 
+            # validasi jumlah intersection (harusnya ada 2)
             if num_intersections != 2:
-                print(f"Skipped degenerate cell ({p.x:.2f}, {p.y:.2f}) [wrong # of intersections: {num_intersections}]")
                 for k, borders in visited.items():
                     k.borders = borders
                 return False
             elif current_cell in visited:
-                print(f"Skipped degenerate cell ({p.x:.2f}, {p.y:.2f}) [missed cell border]")
                 for k, borders in visited.items():
                     k.borders = borders
                 return False
 
+            # simpan cell yang sudah diproses
             visited[current_cell] = current_cell.borders
             current_cell.borders = new_border
             current_cell = next_cell
@@ -133,27 +152,32 @@ class VoronoiDiagram:
         return True
     
     def find_cell(self, p):
-        current = self.cells[-1]
-        best = Geometry.dist_squared(current.generator, p)
+        """Mencari cell yang paling dekat dengan titik yang diberikan."""
+        currentent = self.cells[-1]
+        best = Geometry.dist_squared(currentent.generator, p)
         old = float('inf')
 
+        # loop sampai tidak ditemukan cell yang lebih dekat
         while old > best:
             old = best
-            for vl in current.borders:
+            for vl in currentent.borders:
                 dist = Geometry.dist_squared(vl.neighbor.generator, p)
                 if dist < best:
-                    current = vl.neighbor
+                    currentent = vl.neighbor
                     best = dist
 
-        return current
+        return currentent
 
     def get_cells(self):
+        """Mengembalikan semua cell yang ada di diagram Voronoi."""
         return self.cells
 
     def get_size(self):
+        """Mendapatkan ukuran dari bounding box."""
         return self.boundary.x_max
     
     def clear(self):
+        """Menghapus semua cell yang ada dan menginisialisasi ulang diagram Voronoi."""
         self.cells = []
         self.id_cell = 0
         self.setup(self.boundary.x_max)

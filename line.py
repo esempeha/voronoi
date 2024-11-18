@@ -1,20 +1,28 @@
+from bounding_box import BoundingBox
+from cell import Cell
 from point import Point
 
 class Line:
-    EPSILON = 1e-7
+    """Kelas untuk merepresentasikan (segmen) garis pada diagram voronoi."""
 
-    def __init__(self, start, end, neighbor=None):
+    EPSILON = 1e-7 # untuk toleransi floating point
+
+    def __init__(self, start: Point, end: Point, neighbor: Cell = None):
+        """Konstruktor untuk kelas Line."""
         self.start = start
         self.end = end
         self.neighbor = neighbor
 
     def __str__(self):
+        """Mengembalikan representasi string untuk garis, dengan format [start -> end]"""
         return f"[{self.start} -> {self.end}]"
 
-    def bisector(self, bb):
-        return self.bisector_coords(bb.x_min, bb.y_min, bb.x_max, bb.y_max)
+    def bisector(self, bounding_box: BoundingBox):
+        """Menghitung garis bisector antara dua titik pada boundary bounding box."""
+        return self.bisector_coords(bounding_box.x_min, bounding_box.y_min, bounding_box.x_max, bounding_box.y_max)
 
-    def bisector_coords(self, x_min, y_min, x_max, y_max):
+    def bisector_coords(self, x_min: float, y_min: float, x_max: float, y_max: float):
+        """Menghitung bisektor garis antara dua titik pada batas-batas boundary box."""
         x_mid = (self.start.x + self.end.x) / 2
         y_mid = (self.start.y + self.end.y) / 2
         
@@ -47,6 +55,7 @@ class Line:
         return Line(Point(x1, y1), Point(x2, y2))
 
     def intersection(self, l):
+        """Menghitung titik potong antara dua garis."""
         det = (self.start.x - self.end.x) * (l.start.y - l.end.y) - (self.start.y - self.end.y) * (l.start.x - l.end.x)
         if abs(det) <= self.EPSILON:
             return None
