@@ -180,4 +180,4 @@ class VoronoiDiagram:
         """Menghapus semua cell yang ada dan menginisialisasi ulang diagram Voronoi."""
         self.cells = []
         self.id_cell = 0
-        self.setup(self.boundary.x_max)
+        self.setup()
