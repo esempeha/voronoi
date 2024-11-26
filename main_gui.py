@@ -172,7 +172,7 @@ class MainGUI:
 
         self.draw_cells()
 
-        # gambar circumcircle kosong terbesar yang ditemukan (jika ada)
+        # gambar semua circumcircle kosong terbesar yang ditemukan (jika ada)
         for circle in self.largest_empty_circles:
             center = circle['center']
             radius = circle['radius']
