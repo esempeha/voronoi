@@ -54,26 +54,26 @@ class Line:
 
         return Line(Point(x1, y1), Point(x2, y2))
 
-    def intersection(self, l):
+    def intersection(self, other):
         """Menghitung titik potong antara dua garis."""
-        det = (self.start.x - self.end.x) * (l.start.y - l.end.y) - (self.start.y - self.end.y) * (l.start.x - l.end.x)
+        det = (self.start.x - self.end.x) * (other.start.y - other.end.y) - (self.start.y - self.end.y) * (other.start.x - other.end.x)
         if abs(det) <= self.EPSILON:
             return None
         
         a = (self.start.x * self.end.y - self.start.y * self.end.x)
-        b = (l.start.x * l.end.y - l.start.y * l.end.x)
-        x = (a * (l.start.x - l.end.x) - (self.start.x - self.end.x) * b) / det
-        y = (a * (l.start.y - l.end.y) - (self.start.y - self.end.y) * b) / det
+        b = (other.start.x * other.end.y - other.start.y * other.end.x)
+        x = (a * (other.start.x - other.end.x) - (self.start.x - self.end.x) * b) / det
+        y = (a * (other.start.y - other.end.y) - (self.start.y - self.end.y) * b) / det
         
         if ((x + self.EPSILON < min(self.start.x, self.end.x))
             or (x - self.EPSILON > max(self.start.x, self.end.x))
-            or (x + self.EPSILON < min(l.start.x, l.end.x))
-            or (x - self.EPSILON > max(l.start.x, l.end.x))):
+            or (x + self.EPSILON < min(other.start.x, other.end.x))
+            or (x - self.EPSILON > max(other.start.x, other.end.x))):
             return None
         elif ((y + self.EPSILON < min(self.start.y, self.end.y))
               or (y - self.EPSILON > max(self.start.y, self.end.y))
-              or (y + self.EPSILON < min(l.start.y, l.end.y))
-              or (y - self.EPSILON > max(l.start.y, l.end.y))):
+              or (y + self.EPSILON < min(other.start.y, other.end.y))
+              or (y - self.EPSILON > max(other.start.y, other.end.y))):
             return None
         else:
             return Point(x, y)

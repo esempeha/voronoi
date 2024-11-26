@@ -100,7 +100,7 @@ class MainGUI:
         for cell in self.diagram.get_cells():
             for line in cell.borders:
                 self.draw_line(line)
-            self.draw_point(cell.generator)
+            self.draw_point(cell.site)
 
     def find_circumcircle(self, a, b, c):
         """Menghitung lingkaran luar dari tiga titik."""
@@ -127,18 +127,18 @@ class MainGUI:
 
     def find_largest_empty_circles(self):
         """Mencari lingkaran terbesar yang kosong (tidak mengandung titik lain)."""
-        generators = [cell.generator for cell in self.diagram.get_cells()[3:]]
+        sites = [cell.site for cell in self.diagram.get_cells()[3:]]
         empty_circles = []
 
-        # loop melalui kombinasi semua titik generator dengan memilih 3 titik pada satu waktu
-        for a, b, c in itertools.combinations(generators, 3):
+        # loop melalui kombinasi semua titik site dengan memilih 3 titik pada satu waktu
+        for a, b, c in itertools.combinations(sites, 3):
             circle = self.find_circumcircle(a, b, c)
             
             if circle is None:
                 continue
 
             is_empty = True
-            for point in generators:
+            for point in sites:
                 if point in circle['points']:
                     continue
                 dist = math.sqrt((point.x - circle['center'].x)**2 + (point.y - circle['center'].y)**2)

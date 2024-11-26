@@ -68,7 +68,7 @@ class VoronoiDiagram:
         c1.borders.append(Line(l3.start, i3, c3))
         c3.borders.append(Line(l3.start, i3, c1))
 
-        # simpan voroonoi cell
+        # simpan voronoi cell
         self.add_cell(c1)
         self.add_cell(c2)
         self.add_cell(c3)
@@ -84,7 +84,7 @@ class VoronoiDiagram:
         first = self.find_cell(p)
         
         # jika titik sudah ada
-        if p == first.generator:
+        if p == first.site:
             return False
 
         visited = {}
@@ -92,7 +92,7 @@ class VoronoiDiagram:
 
         # membagi cell-cell yang terpengaruh oleh site/titik baru
         while True:
-            hp = Line(p, current_cell.generator).bisector(self.bisector_bound)
+            hp = Line(p, current_cell.site).bisector(self.bisector_bound)
             i1 = None
             l1 = None
             new_border = []
@@ -120,14 +120,14 @@ class VoronoiDiagram:
                             new_border.append(Line(intersection, i1, new_cell))
                             next_cell = l1.neighbor
 
-                        tmp = current_line.start if Geometry.closer_to(current_line.start, p, current_cell.generator) == current_cell.generator else current_line.end
+                        tmp = current_line.start if Geometry.closer_to(current_line.start, p, current_cell.site) == current_cell.site else current_line.end
                         new_border.append(Line(intersection, tmp, current_line.neighbor))
-                        tmp = l1.start if Geometry.closer_to(l1.start, p, current_cell.generator) == current_cell.generator else l1.end
+                        tmp = l1.start if Geometry.closer_to(l1.start, p, current_cell.site) == current_cell.site else l1.end
                         new_border.append(Line(i1, tmp, l1.neighbor))
 
                 # tambahkan garis boundary yang tidak terpengaruh
-                if (Geometry.closer_to(current_line.start, current_cell.generator, p) == current_cell.generator
-                    and Geometry.closer_to(current_line.end, current_cell.generator, p) == current_cell.generator):
+                if (Geometry.closer_to(current_line.start, current_cell.site, p) == current_cell.site
+                    and Geometry.closer_to(current_line.end, current_cell.site, p) == current_cell.site):
                     new_border.append(current_line)
 
             # validasi jumlah intersection (harusnya ada 2)
@@ -153,20 +153,20 @@ class VoronoiDiagram:
     
     def find_cell(self, p):
         """Mencari cell yang paling dekat dengan titik yang diberikan."""
-        currentent = self.cells[-1]
-        best = Geometry.dist_squared(currentent.generator, p)
+        current_cell = self.cells[-1]
+        best = Geometry.dist_squared(current_cell.site, p)
         old = float('inf')
 
         # loop sampai tidak ditemukan cell yang lebih dekat
         while old > best:
             old = best
-            for vl in currentent.borders:
-                dist = Geometry.dist_squared(vl.neighbor.generator, p)
+            for vl in current_cell.borders:
+                dist = Geometry.dist_squared(vl.neighbor.site, p)
                 if dist < best:
-                    currentent = vl.neighbor
+                    current_cell = vl.neighbor
                     best = dist
 
-        return currentent
+        return current_cell
 
     def get_cells(self):
         """Mengembalikan semua cell yang ada di diagram Voronoi."""
