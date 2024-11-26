@@ -1,3 +1,4 @@
+from line import Line
 from point import Point
 
 class Cell:
@@ -6,8 +7,8 @@ class Cell:
     def __init__(self, site: Point, id: int):
         """Konstruktor untuk inisialisasi voronoi cell dengan site dan ID unik."""
         self.id = id
-        self.site = site
-        self.borders = []
+        self.site = site # tengah dari voronoi cell
+        self.borders: list[Line] = []
 
     def __hash__(self):
         """Mengembalikan ID sebagai nilai hash agar objek Cell dapat

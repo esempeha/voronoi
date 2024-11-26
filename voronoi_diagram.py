@@ -21,6 +21,8 @@ class VoronoiDiagram:
         x_min, y_min = self.boundary.x_min, self.boundary.y_min
         x_max, y_max = self.boundary.x_max, self.boundary.y_max
         x_range, y_range = x_max - x_min, y_max - y_min
+
+        # perbesar area untuk super triangle
         x_super, y_super = x_range * 4, y_range * 4
 
         # membuat bounding box yang lebih besar untuk garis bisector
@@ -38,9 +40,9 @@ class VoronoiDiagram:
         init_bound = BoundingBox(x_min_init, y_min_init, x_max_init, y_max_init)
 
         # tiga titik yang membentuk super triangle
-        p1 = Point(x_min + x_range / 2, y_min - y_super + y_range / 2)
-        p2 = Point(x_max + x_super - x_range / 2, y_max + y_super - y_super / 2)
-        p3 = Point(x_min - x_super + x_range / 2, y_max + y_super - y_super / 2)
+        p1 = Point(x_min + x_range / 2, y_min - y_super + y_range / 2) # atas tengah dari bounding box super
+        p2 = Point(x_max + x_super - x_range / 2, y_max + y_super - y_super / 2) # kanan bawah bounding box super
+        p3 = Point(x_min - x_super + x_range / 2, y_max + y_super - y_super / 2) # kiri bawah bounding box super
 
         # buat voronoi cell untuk ketiga titik
         c1 = Cell(p1, self.id_cell)
@@ -92,7 +94,7 @@ class VoronoiDiagram:
 
         # membagi cell-cell yang terpengaruh oleh site/titik baru
         while True:
-            hp = Line(p, current_cell.site).bisector(self.bisector_bound)
+            hp = Line(p, current_cell.site).bisector(self.bisector_bound) # membentuk garis bisector baru antara titik baru dan generator dari cell yang sedang diproses
             i1 = None
             l1 = None
             new_border = []
@@ -110,7 +112,7 @@ class VoronoiDiagram:
                         l1 = current_line
                     
                     else:
-                        # Tentukan arah dan neighbor dari garis baru yang terbentuk
+                        # tentukan arah dan neighbor dari garis baru yang terbentuk
                         if Geometry.cross_product(i1, intersection, p) > 0:
                             new_cell.borders.append(Line(i1, intersection, current_cell))
                             new_border.append(Line(i1, intersection, new_cell))
