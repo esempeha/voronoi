@@ -105,6 +105,8 @@ class MainGUI:
     def find_circumcircle(self, a, b, c):
         """Menghitung lingkaran luar dari tiga titik."""
         det = a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)
+
+        # jika determinan (mendekati) 0, berarti sebaris (tidak membentuk lingkaran)
         if abs(det) < Point.EPSILON:
             return None
 
@@ -112,35 +114,38 @@ class MainGUI:
         bx, by = b.x, b.y
         cx, cy = c.x, c.y
         
+        # hitung pusat lingkaran (ux, uy) dan radius lingkaran
         d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
         ux = ((ax*ax + ay*ay) * (by - cy) + (bx*bx + by*by) * (cy - ay) + (cx*cx + cy*cy) * (ay - by)) / d
         uy = ((ax*ax + ay*ay) * (cx - bx) + (bx*bx + by*by) * (ax - cx) + (cx*cx + cy*cy) * (bx - ax)) / d
-
         center = Point(ux, uy)
-        radius = math.sqrt((center.x - ax)**2 + (center.y - ay)**2)
+        radius = math.sqrt((ux - ax)**2 + (uy - ay)**2)
         
         return {
-            'center': center,
-            'radius': radius,
-            'points': (a, b, c)
+            'center': center, # pusat lingkaran
+            'radius': radius, 
+            'points': (a, b, c) # 3 titik yang membentuk lingkaran
         }
 
     def find_largest_empty_circles(self):
         """Mencari lingkaran terbesar yang kosong (tidak mengandung titik lain)."""
-        sites = [cell.site for cell in self.diagram.get_cells()[3:]]
+        sites = [cell.site for cell in self.diagram.get_cells()[3:]] # exclude super triangle (3 cell pertama)
         empty_circles = []
 
         # loop melalui kombinasi semua titik site dengan memilih 3 titik pada satu waktu
         for a, b, c in itertools.combinations(sites, 3):
-            circle = self.find_circumcircle(a, b, c)
+            circle = self.find_circumcircle(a, b, c) # circumcircle dari ketiga titik
             
+            # jika tidak membentuk circumcircle, lanjutkan
             if circle is None:
                 continue
-
+            
             is_empty = True
             for point in sites:
                 if point in circle['points']:
                     continue
+                
+                # cek apakah point berada di dalam lingkaran
                 dist = math.sqrt((point.x - circle['center'].x)**2 + (point.y - circle['center'].y)**2)
                 if dist <= circle['radius'] + Point.EPSILON:
                     is_empty = False
@@ -150,12 +155,16 @@ class MainGUI:
             if is_empty:
                 empty_circles.append(circle)
 
+        # cari lingkaran terbesar (jika ada)
         if empty_circles:
             max_radius = max(circle['radius'] for circle in empty_circles)
+            # ambil semua circle dengan radius tersebut
             return [circle for circle in empty_circles if abs(circle['radius'] - max_radius) < Point.EPSILON]
-        return []
+        else:
+            return []
 
     def find_and_draw_empty_circles(self):
+        """Mencari lingkaran kosong terbesar (tidak mengandung titik lain)."""
         if len(self.diagram.get_cells()) < 3:
             return
 
@@ -163,7 +172,7 @@ class MainGUI:
 
         self.draw_cells()
 
-        # gambar lingkaran circumcircle terbesar yang ditemukan (jika ada)
+        # gambar circumcircle kosong terbesar yang ditemukan (jika ada)
         for circle in self.largest_empty_circles:
             center = circle['center']
             radius = circle['radius']
